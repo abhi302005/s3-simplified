@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "description": "CURD with file",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "npm"
   ],
-  "author": "abhay-sharma13",
+  "author": "abhay13",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1692.0"
+    "@aws-sdk/client-s3": "^3.723.0"
   }
 }
