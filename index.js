@@ -1,16 +1,16 @@
-import AWS from "aws-sdk"
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 
 export class S3Service {
   constructor(bucketName, region, credentials) {
-    AWS.config.region = region
-    AWS.config.credentials = {
+    this._bucketName = bucketName
+
+    this._s3 = new S3Client({
+      region: region,
+      credentials: {
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
       sessionToken: credentials?.sessionToken || null,
-    }
-    this._bucketName = bucketName
-    this._s3 = new AWS.S3({
-      params: { Bucket: bucketName },
+      },
     })
   }
   async uploadFile(
