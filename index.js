@@ -32,7 +32,7 @@ export class S3Service {
         Body: payload,
         ContentType: ContentType,
       }
-      const result = await s3.upload(s3Params).promise()
+      const result = await this._s3.upload(s3Params).promise()
       return result
     } catch (error) {
       const errObj = {
@@ -59,7 +59,7 @@ export class S3Service {
         Bucket: this._bucketName,
         Key: s3path,
       }
-      const data = await s3.getObject(s3Params).promise()
+      const data = await this._s3.getObject(s3Params).promise()
       return JSON.parse(data.Body.toString("utf-8"))
     } catch (error) {
       const errObj = {
@@ -86,7 +86,7 @@ export class S3Service {
         Bucket: this._bucketName,
         Key: s3path,
       }
-      const data = await s3.deleteObject(s3Params).promise()
+      const data = await this._s3.deleteObject(s3Params).promise()
       return data
     } catch (error) {
       const errObj = {
@@ -112,7 +112,7 @@ export class S3Service {
         Bucket: this._bucketName,
         Key: s3path,
       }
-      const headData = await s3.headObject(s3Params).promise()
+      const headData = await this._s3.headObject(s3Params).promise()
       return headData
     } catch (error) {
       const errObj = {
