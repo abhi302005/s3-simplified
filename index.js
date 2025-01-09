@@ -7,9 +7,9 @@ export class S3Service {
     this._s3 = new S3Client({
       region: region,
       credentials: {
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials?.sessionToken || null,
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials?.sessionToken || null,
       },
     })
   }
@@ -64,12 +64,13 @@ export class S3Service {
       if (!s3path) {
         throw new Error("Missing required input: s3path")
       }
-      const s3Params = {
+      const command = new GetObjectCommand({
         Bucket: this._bucketName,
         Key: s3path,
-      }
-      const data = await this._s3.getObject(s3Params).promise()
-      return JSON.parse(data.Body.toString("utf-8"))
+      })
+      const data = await this._s3.send(command)
+      const bodyContents = await this._streamToString(data.Body)
+      return JSON.parse(bodyContents)
     } catch (error) {
       const errObj = {
         status: error.status || error.statusCode || 500,
