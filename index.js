@@ -1,10 +1,16 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import * as S3 from "@aws-sdk/client-s3"
 
+const ERROR_CODES = {
+  UPLOAD_FILE_ERROR: "UPLOAD_FILE_ERROR",
+  READ_FILE_ERROR: "READ_FILE_ERROR",
+  GET_FILE_INFO_ERROR: "GET_FILE_INFO_ERROR",
+  DELETE_FILE_ERROR: "DELETE_FILE_ERROR",
+}
 export class S3Service {
   constructor(bucketName, region, credentials) {
     this._bucketName = bucketName
 
-    this._s3 = new S3Client({
+    this._s3 = new S3.S3Client({
       region: region,
       credentials: {
         accessKeyId: credentials.accessKeyId,
@@ -13,12 +19,7 @@ export class S3Service {
       },
     })
   }
-  async uploadFile(
-    payload,
-    s3path,
-    fileName,
-    ContentType = "application/json"
-  ) {
+  async uploadFile(payload, s3path, fileName) {
     try {
       //code
       if (!payload || !s3path || !fileName) {
@@ -26,23 +27,31 @@ export class S3Service {
           "Missing required inputs: payload, s3path, or fileName."
         )
       }
+      if (typeof payload !== "object")
+        throw new Error("Payload must be an object")
+
+      const extension = "json"
+      const ContentType = "application/json"
+      fileName = String(fileName).split(/[./]/)[0]
+      const s3Key = `${s3path}/${fileName}.${extension}`
+
       const s3Params = {
         Bucket: this._bucketName,
-        Key: `${s3path}/${fileName}`,
-        Body: payload,
+        Key: s3Key,
+        Body: JSON.stringify(payload),
         ContentType: ContentType,
       }
-      const result = await this._s3.upload(s3Params).promise()
-      return result
+      const command = new S3.PutObjectCommand(s3Params)
+      const result = await this._s3.send(command)
+      return { ...result, s3Key, success: true }
     } catch (error) {
       const errObj = {
-        status: error.status || error.statusCode || 500,
         success: false,
-        message: error.message || "something went wrong while uploading file",
+        message: error.message || ERROR_CODES.UPLOAD_FILE_ERROR,
         code: error.code || "NOT_FOUND!",
         stack: error.stack || [],
       }
-      console.log(`ERROR @ uploadToS3`, errObj)
+      // console.log(`ERROR @ uploadToS3`, errObj)
       delete errObj.stack
       delete errObj.code
       throw errObj
@@ -64,7 +73,7 @@ export class S3Service {
       if (!s3path) {
         throw new Error("Missing required input: s3path")
       }
-      const command = new GetObjectCommand({
+      const command = new S3.GetObjectCommand({
         Bucket: this._bucketName,
         Key: s3path,
       })
@@ -73,13 +82,12 @@ export class S3Service {
       return JSON.parse(bodyContents)
     } catch (error) {
       const errObj = {
-        status: error.status || error.statusCode || 500,
         success: false,
-        message: error.message || "something went wrong while reading file",
+        message: error.message || ERROR_CODES.READ_FILE_ERROR,
         code: error.code || "NOT_FOUND!",
         stack: error.stack || [],
       }
-      console.log(`ERROR @ readFileFromS3`, errObj)
+      // console.log(`ERROR @ readFile`, errObj)
       delete errObj.stack
       delete errObj.code
       throw errObj
@@ -96,17 +104,17 @@ export class S3Service {
         Bucket: this._bucketName,
         Key: s3path,
       }
-      const data = await this._s3.deleteObject(s3Params).promise()
-      return data
+      const command = new S3.DeleteObjectCommand(s3Params)
+      const data = await this._s3.send(command)
+      return { ...data, success: true }
     } catch (error) {
       const errObj = {
-        status: error.status || error.statusCode || 500,
         success: false,
-        message: error.message || "something went wrong while deleting file",
+        message: error.message || ERROR_CODES.DELETE_FILE_ERROR,
         code: error.code || "NOT_FOUND!",
         stack: error.stack || [],
       }
-      console.log(`ERROR @ deleteFromS3`, errObj)
+      // console.log(`ERROR @ deleteFile`, errObj)
       delete errObj.stack
       delete errObj.code
       throw errObj
@@ -122,22 +130,20 @@ export class S3Service {
         Bucket: this._bucketName,
         Key: s3path,
       }
-      const headData = await this._s3.headObject(s3Params).promise()
-      return headData
+      const command = new S3.HeadObjectCommand(s3Params)
+      const headData = await this._s3.send(command)
+      return { ...headData }
     } catch (error) {
       const errObj = {
-        status: error.status || error.statusCode || 500,
         success: false,
-        message:
-          error.message || "something went wrong while getting file info",
+        message: error.message || ERROR_CODES.GET_FILE_INFO_ERROR,
         code: error.code || "NOT_FOUND!",
         stack: error.stack || [],
       }
-      console.log(`ERROR @ getFileInfo`, errObj)
+      // console.log(`ERROR @ getFileInfo`, errObj)
       delete errObj.stack
       delete errObj.code
       throw errObj
-      // return errObj
     }
   }
 }
