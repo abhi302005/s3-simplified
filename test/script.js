@@ -5,14 +5,15 @@ const region = ""
 const s3 = new S3Service(bucket, region, {
   accessKeyId: "",
   secretAccessKey: "",
+  sessionToken: "" || null,
 })
 
 const s3path = ""
 try {
-  console.log(await s3.readFile(s3path))
+  console.log(await s3.readData(s3path))
   console.log(await s3.getFileInfo(s3path))
   console.log(
-    await s3.uploadFile(
+    await s3.addData(
       {
         id: "b5ee0086-10af-446a-b4e4-51b00d8b6a10",
         name: "test",
