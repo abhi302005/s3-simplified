@@ -1,6 +1,6 @@
 {
   "name": "s3-simplified",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "description": "CURD with file",
   "main": "index.js",
   "type": "module",
